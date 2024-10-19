@@ -6,7 +6,7 @@
     <div class="card">
       <div class="card-body">
         <h5 class="card-title">{{ isset($event) ? 'Edit Event' : 'Create Event' }}</h1></h5>
-        <form action="{{ isset($event) ? route('events.update', $event) : route('events.store') }}" method="POST">
+        <form action="{{ isset($event) ? route('events.update', $event) : route('events.store') }}" method="POST" id="event-form">
             @csrf
             @if(isset($event))
                 @method('PUT')
