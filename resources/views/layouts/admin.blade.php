@@ -55,10 +55,13 @@
 
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
             <li>
-              <a class="dropdown-item d-flex align-items-center" href="#">
-                <i class="bi bi-box-arrow-right"></i>
-                <span>Sign Out</span>
-              </a>
+              <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-flex align-items-center">
+                  @csrf
+                  <button type="submit" class="dropdown-item d-flex align-items-center">
+                      <i class="bi bi-box-arrow-right"></i>
+                      <span>Sign Out</span>
+                  </button>
+              </form>
             </li>
 
           </ul><!-- End Profile Dropdown Items -->
@@ -105,12 +108,7 @@
 
   </main><!-- End #main -->
 
-  <!-- ======= Footer ======= -->
-  <footer id="footer" class="footer">
-    <div class="copyright">
-      &copy; Copyright <strong><span> </span></strong>. All Rights Reserved
-    </div>
-  </footer><!-- End Footer -->
+
 
   <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 

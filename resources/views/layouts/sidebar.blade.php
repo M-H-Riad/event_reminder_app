@@ -17,7 +17,7 @@
         </a>
         <ul id="users-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
           <li>
-            <a href="#">
+            <a href="{{route('events.index')}}">
               <i class="bi bi-circle"></i><span>Events</span>
             </a>
           </li>
