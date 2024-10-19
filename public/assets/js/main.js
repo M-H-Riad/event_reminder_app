@@ -309,3 +309,124 @@
   }
 
 })();
+
+
+
+
+// IndexedDB Setup
+const dbName = 'EventReminderDB';
+const dbVersion = 1;
+let db;
+
+// Open a database connection
+const openDatabase = () => {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(dbName, dbVersion);
+
+        request.onerror = event => {
+            console.error('Database error:', event.target.error);
+            reject(event.target.error);
+        };
+
+        request.onsuccess = event => {
+            db = event.target.result;
+            resolve(db);
+        };
+
+        request.onupgradeneeded = event => {
+            db = event.target.result;
+            const objectStore = db.createObjectStore('events', { keyPath: 'reminder_id' });
+            objectStore.createIndex('title', 'title', { unique: false });
+        };
+    });
+};
+
+// Save event offline
+const saveEventOffline = (event) => {
+    const transaction = db.transaction(['events'], 'readwrite');
+    const objectStore = transaction.objectStore('events');
+    objectStore.put(event);
+};
+
+// Get all offline events
+const getOfflineEvents = () => {
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['events'], 'readonly');
+        const objectStore = transaction.objectStore('events');
+        const request = objectStore.getAll();
+
+        request.onsuccess = () => {
+            resolve(request.result);
+        };
+
+        request.onerror = event => {
+            reject(event.target.error);
+        };
+    });
+};
+
+// Synchronization logic
+window.addEventListener('online', async () => {
+    console.log('You are online. Syncing offline events...');
+    const offlineEvents = await getOfflineEvents();
+
+    for (const event of offlineEvents) {
+        const response = await fetch('/api/events', {
+            method: 'POST',
+            body: JSON.stringify(event),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (response.ok) {
+            console.log('Event synced successfully:', event);
+            removeEventFromOffline(event.reminder_id);
+        } else {
+            console.error('Failed to sync event:', event);
+        }
+    }
+});
+
+// Function to remove synced event from IndexedDB
+const removeEventFromOffline = (reminder_id) => {
+    const transaction = db.transaction(['events'], 'readwrite');
+    const objectStore = transaction.objectStore('events');
+    objectStore.delete(reminder_id);
+};
+
+// Event Form Submission Logic
+document.addEventListener('DOMContentLoaded', async () => {
+    await openDatabase();
+
+    const form = document.getElementById('event-form');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        const event = Object.fromEntries(formData);
+        event.reminder_id = 'EVT-' + Math.random().toString(36).substring(2, 15); // Generate a unique reminder ID
+
+        // Save the event offline
+        saveEventOffline(event);
+
+        // Optionally send to server if online
+        if (navigator.onLine) {
+            const response = await fetch('/api/events', {
+                method: 'POST',
+                body: JSON.stringify(event),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                console.log('Event saved successfully on the server');
+            } else {
+                console.error('Failed to save event on server');
+            }
+        } else {
+            console.log('You are offline, event saved locally');
+        }
+    });
+});
