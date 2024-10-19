@@ -8,3 +8,7 @@
 - Run `npm run build`
 - Run `php artisan serve`
 - Now visit "http://127.0.0.1:8000/"
+
+ ## Login Credentials
+- Email: superadmin@example.com
+- Password: 12345678
